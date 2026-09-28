@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KNX Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c12; --surface:#12151d; --surface2:#181c26; --line:#242a35;
+  --text:#eef1f6; --text-dim:#838da0;
+  --accent:#ff3d81; --accent2:#3da9ff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px); scroll-behavior:smooth}
+body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; line-height:1.55}
+h1,h2,h3,.brand{font-family:'Space Grotesk',sans-serif; font-weight:600; letter-spacing:-.01em}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:inherit}
+.wrap{max-width:1100px; margin:0 auto; padding:0 24px}
+.container{overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky; top:0; z-index:10; top:env(safe-area-inset-top,0px);
+  background:rgba(10,12,18,.86); backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+nav .wrap{display:flex; align-items:center; justify-content:space-between; height:64px}
+.brand{font-size:20px; display:flex; align-items:center; gap:9px}
+.brand-mark{width:9px; height:9px; background:var(--accent); border-radius:2px; transform:rotate(45deg)}
+.navlinks{display:flex; gap:30px; font-size:14px; color:var(--text-dim)}
+.navlinks a:hover{color:var(--text)}
+
+/* BUTTONS */
+.btn-primary{background:var(--accent); color:#fff; padding:12px 24px; border-radius:5px; font-weight:600; font-size:14px; text-decoration:none; display:inline-block; border:none; cursor:pointer}
+.btn-primary:hover{background:#e22f70}
+.btn-ghost{border:1px solid var(--line); color:var(--text); padding:12px 24px; border-radius:5px; font-weight:600; font-size:14px; text-decoration:none; display:inline-block}
+.btn-ghost:hover{border-color:var(--text-dim)}
+.locked-badge{display:inline-flex; align-items:center; gap:6px; background:var(--surface2); border:1px solid var(--line);
+  color:var(--text-dim); font-size:12px; padding:5px 10px; border-radius:5px; font-weight:600}
+.verified-badge{background:rgba(52,211,153,.12); color:#34d399; border-color:rgba(52,211,153,.3)}
+
+/* HERO */
+.hero{padding:80px 0 90px; border-bottom:1px solid var(--line)}
+.hero .wrap{display:grid; grid-template-columns:1.15fr 1fr; gap:50px; align-items:center}
+@media(max-width:860px){.hero .wrap{grid-template-columns:1fr}}
+.hero-tag{color:var(--accent2); font-size:13px; font-weight:600; margin-bottom:16px; font-family:'JetBrains Mono',monospace}
+.hero h1{font-size:48px; line-height:1.08; margin:0 0 18px}
+.hero p{color:var(--text-dim); font-size:16px; margin:0 0 30px; max-width:440px}
+.hero-ctas{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:46px}
+.hero-stats{display:flex; gap:40px}
+.hero-stats div b{font-size:24px; display:block; font-family:'Space Grotesk',sans-serif}
+.hero-stats div span{color:var(--text-dim); font-size:12px}
+
+.terminal{background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow:hidden;
+  box-shadow:0 0 0 1px rgba(61,169,255,.08), 0 30px 60px -20px rgba(0,0,0,.6)}
+.terminal-bar{display:flex; gap:6px; padding:11px 14px; border-bottom:1px solid var(--line); background:var(--surface2)}
+.terminal-bar span{width:9px; height:9px; border-radius:50%; background:var(--line)}
+.terminal-body{padding:20px 22px; font-size:13px; line-height:1.9}
+.terminal-body .p1{color:var(--text-dim)}
+.terminal-body .p2{color:var(--accent2)}
+.terminal-body .p3{color:#34d399}
+.cursor{display:inline-block; width:7px; height:14px; background:var(--accent); vertical-align:middle; animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* SECTIONS */
+section{padding:64px 0}
+.section-head{margin-bottom:34px; display:flex; align-items:baseline; justify-content:space-between; gap:20px}
+.section-head h2{font-size:28px; margin:0}
+.section-head p{color:var(--text-dim); margin:0; font-size:14px}
+
+/* PRODUCTS */
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface); padding:26px; display:flex; flex-direction:column; border-left:3px solid var(--line)}
+.card.is-free{border-left-color:#34d399}
+.card.is-paid{border-left-color:var(--accent2)}
+.card-top{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px}
+.card-top.is-free{color:#34d399}
+.card-top.is-paid{color:var(--accent2)}
+.card h3{font-size:18px; margin:0 0 8px}
+.card p{color:var(--text-dim); font-size:14px; margin:0 0 22px; flex:1}
+.card-foot{display:flex; align-items:center; justify-content:space-between}
+.price{font-size:19px; font-weight:600; font-family:'Space Grotesk',sans-serif}
+.price.free-price{color:#34d399}
+.buy{font-size:13px; font-weight:600; background:var(--surface2); border:1px solid var(--line); padding:9px 16px; border-radius:5px; text-decoration:none}
+.buy:hover{border-color:var(--accent)}
+
+/* PAYPAL */
+.card-foot-paid{display:flex; flex-direction:column; gap:12px}
+.card-foot-paid .price{align-self:flex-start}
+.pay-row{display:flex; gap:8px}
+.pay-btn{flex:1; text-align:center; font-size:12.5px; padding:10px 10px; border-radius:5px; font-weight:600; text-decoration:none}
+.pay-paypal{background:#ffc439; color:#111}
+.pay-paypal:hover{background:#ffb700}
+.pay-discord{background:var(--surface2); border:1px solid var(--line); color:var(--text)}
+.pay-discord:hover{border-color:var(--accent)}
+
+/* RANKING */
+.rank-list{border:1px solid var(--line); border-radius:8px; overflow:hidden}
+.rank-row{display:grid; grid-template-columns:44px 1fr 140px 140px; align-items:center; padding:15px 22px; border-bottom:1px solid var(--line); font-size:14px; background:var(--surface)}
+.rank-row:last-child{border-bottom:none}
+.rank-row.head{color:var(--text-dim); font-size:11px; background:var(--surface2); text-transform:uppercase; letter-spacing:.05em}
+.rank-pos{font-family:'JetBrains Mono',monospace; color:var(--accent)}
+.rank-row .name{font-weight:600}
+@media(max-width:600px){.rank-row{grid-template-columns:32px 1fr 90px; font-size:13px} .rank-row .col-scripts{display:none}}
+
+/* DISCORD CTA */
+.discord-cta{border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:8px; padding:40px 44px; background:var(--surface)}
+.discord-cta h2{font-size:24px; margin:0 0 8px}
+.discord-cta p{color:var(--text-dim); margin:0 0 22px}
+
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-q{width:100%; text-align:left; background:none; border:none; color:var(--text); font-family:inherit; font-size:15px; font-weight:600; padding:18px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
+.faq-q:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.faq-icon{color:var(--accent); font-size:18px; transition:transform .2s; font-family:'JetBrains Mono',monospace}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-a{max-height:0; overflow:hidden; transition:max-height .25s ease; color:var(--text-dim); font-size:14px}
+.faq-item.open .faq-a{max-height:200px; padding-bottom:18px}
+
+footer{border-top:1px solid var(--line); padding:28px 0; color:var(--text-dim); font-size:13px; text-align:center}
+
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; scroll-behavior:auto !important} .cursor{animation:none} }
+
+/* GATE */
+#gate{position:fixed; inset:0; z-index:100; background:rgba(10,12,18,.92); backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center; padding:20px}
+#gate.hidden{display:none}
+.gate-card{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:36px; max-width:380px; width:100%; text-align:center}
+.gate-card h2{font-size:22px; margin:0 0 10px}
+.gate-card p{color:var(--text-dim); font-size:14px; margin:0 0 24px}
+.gate-step{display:none}
+.gate-step.active{display:block}
+.gate-input{width:100%; background:var(--surface2); border:1px solid var(--line); border-radius:5px; color:var(--text);
+  padding:11px 14px; font-size:15px; margin-bottom:12px; text-align:center; letter-spacing:1px; font-family:'JetBrains Mono',monospace}
+.gate-input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.gate-error{color:var(--accent); font-size:13px; margin:-4px 0 12px; display:none}
+.gate-error.show{display:block}
+.gate-link{display:block; width:100%; margin-bottom:14px}
+
+/* PLAYER */
+#player{position:fixed; bottom:18px; right:18px; z-index:50;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  background:var(--surface); border:1px solid var(--line); border-radius:8px;
+  padding:12px 14px; display:flex; align-items:center; gap:12px; box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#play-toggle{width:36px; height:36px; border-radius:50%; border:1px solid var(--line); background:var(--accent);
+  color:#fff; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0}
+#play-toggle:hover{background:#e22f70}
+.player-info{display:flex; flex-direction:column; line-height:1.25}
+.player-info b{font-size:13px; font-family:'Space Grotesk',sans-serif}
+.player-info span{font-size:11px; color:var(--text-dim)}
+#vol{width:70px; accent-color:var(--accent)}
+@media(max-width:480px){ .player-info{display:none} #player{padding:10px} }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-step active" data-step="1">
+      <h2>Acceso a las descargas</h2>
+      <p>Para descargar los scripts primero tenés que unirte a nuestra comunidad de Discord y verificarte ahí.</p>
+      <a class="gate-link btn-primary" href="https://discord.gg/tu-invitacion" target="_blank" rel="noopener">Unirme al Discord</a>
+      <a class="gate-link btn-ghost" id="go-step2" href="#" style="display:block">Ya me uní, verificar código</a>
+    </div>
+    <div class="gate-step" data-step="2">
+      <h2>Verificá tu código</h2>
+      <p>Buscalo en el canal de verificación del Discord y pegalo acá.</p>
+      <input class="gate-input" id="gate-code" placeholder="CÓDIGO" autocomplete="off">
+      <div class="gate-error" id="gate-error">Código incorrecto. Revisá el canal de verificación.</div>
+      <a class="gate-link btn-primary" id="verify-btn" href="#">Verificar y entrar</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark"></span>KNX STORE</div>
+    <div class="navlinks">
+      <a href="#scripts">Scripts</a>
+      <a href="#ranking">Ranking</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <span id="nav-status" class="locked-badge">🔒 Sin verificar</span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="hero-tag">// scripts para mta:sa</div>
+      <h1>Recursos que le dan otro nivel a tu servidor.</h1>
+      <p>Inventarios, jobs y paneles listos para instalar, hechos y mantenidos por KNX. Gratis o de pago, todo en un solo lugar.</p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="#scripts">Ver scripts</a>
+        <a class="btn-ghost" href="#discord">Unirme al Discord</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>12+</b><span>scripts publicados</span></div>
+        <div><b>300+</b><span>compradores</span></div>
+        <div><b>24/7</b><span>soporte por Discord</span></div>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal-bar"><span></span><span></span><span></span></div>
+      <div class="terminal-body mono">
+        <div class="p1">$ knx install cr_inventario</div>
+        <div class="p2">&gt; descargando recurso...</div>
+        <div class="p3">&gt; listo. reiniciá tu server.<span class="cursor"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="scripts">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Scripts</h2>
+      <p>Cada recurso incluye instalación, soporte y actualizaciones.</p>
+    </div>
+    <div class="grid">
+
+      <div class="card is-paid">
+        <div class="card-top is-paid">De pago</div>
+        <h3>CR Inventario</h3>
+        <p>Inventario con interfaz estilo QBCore para MTA, apertura rápida con F2 y diseño moderno de slots.</p>
+        <div class="card-foot-paid">
+          <span class="price">$8 USD</span>
+          <div class="pay-row">
+            <a class="pay-btn pay-paypal" href="https://www.paypal.com/paypalme/PON-TU-USUARIO/8" target="_blank" rel="noopener">Pagar con PayPal</a>
+            <a class="pay-btn pay-discord" href="#discord">Discord</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card is-free">
+        <div class="card-top is-free">Gratis</div>
+        <h3>NSMusica Panel</h3>
+        <p>Panel de accesorios de música con interfaz moderna, pensado para reemplazar paneles antiguos sin perder funciones.</p>
+        <div class="card-foot"><span class="price free-price">Gratis</span><a class="buy download-link" href="https://cdn.discordapp.com/PON-ACA-EL-LINK-REAL/NSMusica_Panel.zip">Descargar</a></div>
+      </div>
+
+      <div class="card is-paid">
+        <div class="card-top is-paid">De pago</div>
+        <h3>Wave Infobox</h3>
+        <p>Sistema de trabajo de electricista con mensajes en pantalla (dx messages) y flujo de trabajo completo, listo para MTA.</p>
+        <div class="card-foot-paid">
+          <span class="price">$6 USD</span>
+          <div class="pay-row">
+            <a class="pay-btn pay-paypal" href="https://www.paypal.com/paypalme/PON-TU-USUARIO/6" target="_blank" rel="noopener">Pagar con PayPal</a>
+            <a class="pay-btn pay-discord" href="#discord">Discord</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="ranking">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Ranking</h2>
+      <p>Los usuarios con más scripts publicados y comprados en la tienda.</p>
+    </div>
+    <div class="rank-list">
+      <div class="rank-row head">
+        <span>#</span><span>Usuario</span><span class="col-scripts">Publicados</span><span>Compras</span>
+      </div>
+      <div class="rank-row"><span class="rank-pos">01</span><span class="name">KNX</span><span class="col-scripts">12</span><span>—</span></div>
+      <div class="rank-row"><span class="rank-pos">02</span><span class="name">Comprador_01</span><span class="col-scripts">0</span><span>7</span></div>
+      <div class="rank-row"><span class="rank-pos">03</span><span class="name">Comprador_02</span><span class="col-scripts">0</span><span>5</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="discord">
+  <div class="wrap">
+    <div class="discord-cta">
+      <h2>Toda compra pasa por Discord</h2>
+      <p>Entra al servidor antes de comprar: ahí se confirman los pagos y se entregan los scripts.</p>
+      <a class="btn-primary" href="#">Entrar al Discord</a>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap" style="max-width:720px">
+    <div class="section-head">
+      <h2>Preguntas frecuentes</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">¿Cómo compro un script? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Podés pagar directo con PayPal desde la tarjeta del script, o coordinarlo por Discord. En ambos casos mandá el comprobante por Discord para recibir el archivo.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">¿Los scripts gratis tienen soporte? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Sí, el soporte básico de instalación es el mismo para scripts gratis y de pago, por Discord.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">¿Funcionan en cualquier servidor de MTA? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Cada script indica sus requisitos en su ficha del Discord. La mayoría son plug-and-play sobre un gamemode estándar.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>KNX Store — scripts para MTA:SA</footer>
+</div>
+
+<div id="player">
+  <button id="play-toggle" aria-label="Reproducir música">▶</button>
+  <div class="player-info"><b>KNX Radio</b><span id="track-name">Tema retro — pausado</span></div>
+  <input type="range" id="vol" min="0" max="100" value="35" aria-label="Volumen">
+</div>
+
+<script>
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click',()=>{
+    q.parentElement.classList.toggle('open');
+  });
+});
+
+// ---- Gate de verificación ----
+// Cambien este código y compártanlo en el canal de verificación del Discord.
+const VERIFY_CODE = "KNX2026";
+const gate = document.getElementById('gate');
+const navStatus = document.getElementById('nav-status');
+
+function setVerified(){
+  navStatus.textContent = '✓ Verificado';
+  navStatus.classList.add('verified-badge');
+  gate.classList.add('hidden');
+}
+
+try{
+  if(localStorage.getItem('knx_verified') === '1') setVerified();
+  else gate.classList.remove('hidden');
+}catch(e){ /* storage no disponible: dejamos el gate visible */ }
+
+document.getElementById('go-step2').addEventListener('click', (e)=>{
+  e.preventDefault();
+  document.querySelector('.gate-step[data-step="1"]').classList.remove('active');
+  document.querySelector('.gate-step[data-step="2"]').classList.add('active');
+});
+
+document.getElementById('verify-btn').addEventListener('click', (e)=>{
+  e.preventDefault();
+  const val = document.getElementById('gate-code').value.trim().toUpperCase();
+  if(val === VERIFY_CODE){
+    try{ localStorage.setItem('knx_verified','1'); }catch(e){}
+    setVerified();
+  } else {
+    document.getElementById('gate-error').classList.add('show');
+  }
+});
+
+// ---- KNX Radio: música ambiente generada en el navegador (sin archivos externos) ----
+(()=>{
+  let ctx, master, playing=false, stepIndex=0, timerId;
+  const toggle = document.getElementById('play-toggle');
+  const trackName = document.getElementById('track-name');
+  const vol = document.getElementById('vol');
+  const pattern = [130.8,164.8,196.0,164.8, 146.8,196.0,220.0,196.0, 174.6,220.0,261.6,220.0, 130.8,196.0,164.8,146.8];
+
+  function ensureCtx(){
+    if(!ctx){
+      ctx = new (window.AudioContext||window.webkitAudioContext)();
+      master = ctx.createGain();
+      master.gain.value = vol.value/100;
+      master.connect(ctx.destination);
+    }
+  }
+
+  function playStep(){
+    const freq = pattern[stepIndex % pattern.length];
+    stepIndex++;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.5, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+    osc.connect(g); g.connect(master);
+    osc.start(); osc.stop(ctx.currentTime + 0.3);
+    timerId = setTimeout(playStep, 260);
+  }
+
+  toggle.addEventListener('click', ()=>{
+    ensureCtx();
+    if(ctx.state === 'suspended') ctx.resume();
+    playing = !playing;
+    if(playing){
+      toggle.textContent = '❚❚';
+      trackName.textContent = 'Tema retro — sonando';
+      playStep();
+    } else {
+      toggle.textContent = '▶';
+      trackName.textContent = 'Tema retro — pausado';
+      clearTimeout(timerId);
+    }
+  });
+
+  vol.addEventListener('input', ()=>{
+    if(master) master.gain.value = vol.value/100;
+  });
+})();
+
+// ---- Descarga: es un link normal, solo se bloquea si no está verificado ----
+document.querySelectorAll('.download-link').forEach(link=>{
+  link.addEventListener('click', (e)=>{
+    let verified = false;
+    try{ verified = localStorage.getItem('knx_verified') === '1'; }catch(e){}
+    if(!verified){
+      e.preventDefault();
+      gate.classList.remove('hidden');
+    }
+  });
+});
+</script>
+</body>
+</html>
